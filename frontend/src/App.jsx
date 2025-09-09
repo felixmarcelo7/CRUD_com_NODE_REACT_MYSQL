@@ -40,8 +40,8 @@ function App() {
     <>
       <Container>
         <Title>USUÁRIOS</Title>
-        <Form />
-        <Grid users={users}/>
+        <Form onEdit={onEdit} serOnEdit={serOnEdit} getUsers={getUsers}/>
+        <Grid users={users} setUsers={setUsers} setOnEdit={serOnEdit}/>
       </Container>
       <ToastContainer />
       <GlobalStyle />

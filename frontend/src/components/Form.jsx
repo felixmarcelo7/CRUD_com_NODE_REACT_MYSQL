@@ -1,11 +1,13 @@
-import React, { useRef } from "react";
+import axios from "axios";
+import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
+import { toast } from "react-toastify";
 
 const FormContainer = styled.form`
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+  align-items: flex-end;
   gap: 10px;
+  flex-wrap: wrap;
   background-color: #fff;
   padding: 20px;
   box-shadow: 0px 0px 5px #ccc;
@@ -25,6 +27,8 @@ const Input = styled.input`
   height: 40px;
 `;
 
+const Label = styled.label``;
+
 const Button = styled.button`
   padding: 10px;
   cursor: pointer;
@@ -33,31 +37,85 @@ const Button = styled.button`
   background-color: #2c73d2;
   color: white;
   height: 42px;
-  text-align: left;
-  margin-top: 25px;
 `;
 
-const Form = ({ onEdit }) => {
+const Form = ({ getUsers, onEdit, setOnEdit }) => {
   const ref = useRef();
 
+  useEffect(() => {
+    if (onEdit) {
+      const user = ref.current;
+
+      user.nome.value = onEdit.nome;
+      user.email.value = onEdit.email;
+      user.fone.value = onEdit.fone;
+      user.data_nascimento.value = onEdit.data_nascimento;
+    }
+  }, [onEdit]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const user = ref.current;
+
+    if (
+      !user.nome.value ||
+      !user.email.value ||
+      !user.fone.value ||
+      !user.data_nascimento.value
+    ) {
+      return toast.warn("Preencha todos os campos!");
+    }
+
+    if (onEdit) {
+      await axios
+        .put("http://localhost:8800/" + onEdit.id, {
+          nome: user.nome.value,
+          email: user.email.value,
+          fone: user.fone.value,
+          data_nascimento: user.data_nascimento.value,
+        })
+        .then(({ data }) => toast.success(data))
+        .catch(({ data }) => toast.error(data));
+    } else {
+      await axios
+        .post("http://localhost:8800", {
+          nome: user.nome.value,
+          email: user.email.value,
+          fone: user.fone.value,
+          data_nascimento: user.data_nascimento.value,
+        })
+        .then(({ data }) => toast.success(data))
+        .catch(({ data }) => toast.error(data));
+    }
+
+    user.nome.value = "";
+    user.email.value = "";
+    user.fone.value = "";
+    user.data_nascimento.value = "";
+
+    getUsers();
+  };
+
   return (
-    <FormContainer>
+    <FormContainer ref={ref} onSubmit={handleSubmit}>
       <InputArea>
-        <label htmlFor="nome">Nome</label>
-        <Input type="text" name="nome" id="nome" />
+        <Label>Nome</Label>
+        <Input name="nome" />
       </InputArea>
       <InputArea>
-        <label htmlFor="email">E-mail</label>
-        <Input type="email" name="email" id="email" />
+        <Label>E-mail</Label>
+        <Input name="email" type="email" />
       </InputArea>
       <InputArea>
-        <label htmlFor="tel">Telefone</label>
-        <Input type="tel" name="tel" id="tel" />
+        <Label>Telefone</Label>
+        <Input name="fone" />
       </InputArea>
       <InputArea>
-        <label htmlFor="dataNasc">Data de Nascimento</label>
-        <Input type="date" name="dataNasc" id="dataNasc" />
+        <Label>Data de Nascimento</Label>
+        <Input name="data_nascimento" type="date" />
       </InputArea>
+
       <Button type="submit">SALVAR</Button>
     </FormContainer>
   );
